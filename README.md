@@ -22,15 +22,35 @@ vector store**.
 
 That's it — Claude Code will load the skill on demand whenever a task involves scanned documents.
 
+## Requirements
+
+Python 3.8+ on your machine — the client script runs locally, not inside the plugin sandbox.
+The command is `python3` on macOS/Linux and `py` on Windows (install from
+[python.org](https://www.python.org/downloads/)).
+
 ## Setup (one-time)
 
 1. Get an API key at https://space-ocr.com → Settings → API Keys.
-2. Make it visible to the script — either:
-   - `export SPACE_OCR_API_KEY=spocr_...`, or
-   - drop it in a `.env` file in your project root (see [`.env.example`](skills/space-ocr/.env.example)).
+2. Make it visible to the script — either drop it in a `.env` file in your project root
+   (see [`.env.example`](skills/space-ocr/.env.example)), or export it in your shell:
+
+   macOS / Linux (bash/zsh):
+   ```bash
+   export SPACE_OCR_API_KEY=spocr_...
+   ```
+   Windows (PowerShell):
+   ```powershell
+   $env:SPACE_OCR_API_KEY = "spocr_..."
+   ```
 3. Smoke test:
+
+   macOS / Linux:
    ```bash
    python3 ~/.claude/plugins/space-ocr/skills/space-ocr/scripts/space_ocr.py balance
+   ```
+   Windows (PowerShell):
+   ```powershell
+   py $HOME\.claude\plugins\space-ocr\skills\space-ocr\scripts\space_ocr.py balance
    ```
 
 Optional: `SPACE_OCR_API_BASE` overrides the endpoint (defaults to `https://api.space-ocr.com`).
