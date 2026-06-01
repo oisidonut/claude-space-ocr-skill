@@ -1,0 +1,14 @@
+{
+  "name": "space-ocr",
+  "owner": {
+    "name": "Green Bear",
+    "email": "oisidonut@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "space-ocr",
+      "source": ".",
+      "description": "Structured OCR for invoices, receipts, IDs, and forms via the space ocr API. Stores results in queryable sheets — no database needed."
+    }
+  ]
+}

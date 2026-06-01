@@ -1,0 +1,24 @@
+{
+  "prompt": "This is a Japanese business document (invoice 請求書 / quotation 見積書 / delivery note 納品書). Extract the fields below.\n\nIMPORTANT — extract every value EXACTLY as printed on the page (verbatim). Do NOT normalize, reformat, translate, round, or compute anything:\n- Keep dates in their original on-page form (e.g. 2026年3月31日 — never rewrite to 2026-03-31).\n- Keep numbers with their original digits and separators as shown.\n- Only return a value that is literally printed on the document; never sum, infer, or derive a number (such as a subtotal/total) that is not actually shown.\n- Return an empty string for anything not present.\n\nVerbatim values let the engine anchor each value to its exact spot on the page; reformatted values cannot be located precisely.",
+  "columns": [
+    { "name": "vendor", "type": "string", "description": "Issuing company (発行元) — the company that issued/sent this document; usually the side with the seal/stamp. Copy the name verbatim." },
+    { "name": "recipient", "type": "string", "description": "Addressed-to party (宛先, marked 御中) — the company this document is billed/sent to. Copy verbatim." },
+    { "name": "invoice_no", "type": "string", "description": "Document number (請求書番号 / 見積番号 / 納品書番号), exactly as printed" },
+    { "name": "invoice_date", "type": "string", "description": "Issue date (発行日) exactly as printed, e.g. 2026年3月15日 — do not reformat" },
+    { "name": "due_date", "type": "string", "description": "Payment due date (支払期限) / valid-until (有効期限) exactly as printed; empty if absent" },
+    {
+      "name": "items",
+      "type": "array",
+      "description": "Line items, one element per printed row",
+      "children": [
+        { "name": "description", "type": "string", "description": "Item name / description, verbatim" },
+        { "name": "quantity", "type": "string", "description": "Quantity, verbatim" },
+        { "name": "unit_price", "type": "string", "description": "Unit price, verbatim" },
+        { "name": "amount", "type": "string", "description": "Line amount, verbatim" }
+      ]
+    },
+    { "name": "subtotal", "type": "string", "description": "Subtotal (小計) exactly as printed; empty if not shown as a single value" },
+    { "name": "tax", "type": "string", "description": "Tax (消費税) exactly as printed; empty if not shown as a single value" },
+    { "name": "total", "type": "string", "description": "Grand total (合計金額) exactly as printed" }
+  ]
+}

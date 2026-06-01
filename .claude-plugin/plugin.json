@@ -1,0 +1,16 @@
+{
+  "name": "space-ocr",
+  "version": "0.1.0",
+  "description": "Structured OCR + queryable storage via the space ocr API. Turns invoices/receipts/IDs into typed fields, each anchored to a bounding box on the page. Pure stdlib Python client — no pip install, no MCP server, no SDK.",
+  "homepage": "https://space-ocr.com",
+  "repository": "https://github.com/oisidonut/claude-space-ocr-skill",
+  "license": "MIT",
+  "keywords": [
+    "ocr",
+    "invoice",
+    "receipt",
+    "document-ai",
+    "structured-extraction",
+    "space-ocr"
+  ]
+}
