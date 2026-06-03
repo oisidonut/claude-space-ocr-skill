@@ -17,6 +17,31 @@ the API instead of returned to the conversation as raw JSON.
 | *"Show me where on the page that number came from."* | `view <sheet>` returns each value's bounding box; deep-link `https://space-ocr.com/pages/myspace/<path>` |
 | *"Fix row 4, column 'total' — it should be 12800."* | `edit <sheet> --row 4 --column total --value 12800` |
 
+## Why this exists
+
+Asking an LLM to OCR each image directly tends to break down at scale:
+
+- **Slow on batches.** Every image becomes its own round-trip through the chat. Thirty
+  receipts means thirty tool calls and a lot of waiting.
+- **Hallucinations.** The model emits text that isn't on the page — totals it computed,
+  dates it normalized, vendors it guessed from context.
+- **Context bloat and drift.** Raw OCR JSON for every document piles up in the
+  conversation, pushes earlier turns out of the window, and the agent gradually loses
+  track of what it already processed. By the time someone asks *"which vendor billed
+  the most?"*, half the rows are no longer in context.
+
+The skill works around each of those:
+
+- OCR runs **server-side** and async via `/upload` — one call submits the whole batch,
+  the agent polls jobs instead of routing every image through the conversation.
+- Every value carries a **bounding box re-anchored to real Vision-API symbols on the
+  page**, not an LLM guess. Anything the model invents has no anchor and surfaces as
+  such; `--auto` further refuses non-document images instead of inventing fields.
+- Extractions live in **sheets behind the API**, not in the conversation. The agent
+  reads back only what the current question needs via `query` / `view` with server-side
+  filters, so the chat doesn't accumulate raw OCR and the agent doesn't drift as the
+  batch grows.
+
 Python client is stdlib-only — no `pip install`, no MCP server, no SDK.
 
 ## Install
