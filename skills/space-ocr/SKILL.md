@@ -31,7 +31,7 @@ Run `python3 scripts/space_ocr.py <command> --help` for flags. All output is JSO
 | Command | What it does | Maps to |
 |---|---|---|
 | `balance` | Remaining free / flat-fee / paid scans | `GET /amount` |
-| `ocr <image> [--template ID \| --fields FILE \| --auto]` | Extract fields from one image (URL, file path, or base64) | `POST /ocr/fields` |
+| `ocr <image> [--auto \| --template ID \| --fields FILE]` | Extract fields from one image (URL, file path, or base64). Prefer `--auto`: the engine looks at the page and picks the fields itself, with the same gating as `/ocr/suggest_fields` (rejects non-text / non-document images instead of inventing fields) | `POST /ocr/fields` |
 | `space [PATH] [--depth N]` | List the workspace tree | `GET /space` |
 | `create folder\|sheet\|memo <PATH> <NAME> [--columns FILE]` | Make a folder / sheet (with column schema) / memo | `POST /create` |
 | `upload <SHEET_PATH> <FILE...> [--wait]` | Drop images into a sheet; OCR runs server-side (async) | `POST /upload` |
@@ -42,11 +42,16 @@ Run `python3 scripts/space_ocr.py <command> --help` for flags. All output is JSO
 | `remove <PATH>` | Delete a folder / sheet / memo / image (cascades) | `POST /remove` |
 | `templates` | List the built-in document templates | (local) |
 
-Built-in `--template` ids: `invoice`, `receipt`, `business_card`, `purchase_order`, `delivery`,
-`quote`, `bankbook`, `passport`, `driver_license`, `resident_card`, `my_number_card`,
-`residence_card`, `india_electoral_roll_cover`. For anything else, pass `--fields <schema.json>`
-(see [`assets/schema_invoice.json`](assets/schema_invoice.json)) or `--auto` to let the engine
-infer the fields.
+**Picking the field schema — `--auto` is the default.** When you call `ocr`, prefer `--auto`:
+the engine runs the same field-suggestion pass that `/ocr/suggest_fields` uses to pick
+4–8 fields from what's actually printed on the page (and refuses to invent fields when
+the image isn't a structured document). Use `--template <id>` only when the document is
+clearly one of the built-ins (`invoice`, `receipt`, `business_card`, `purchase_order`,
+`delivery`, `quote`, `bankbook`, `passport`, `driver_license`, `resident_card`,
+`my_number_card`, `residence_card`, `india_electoral_roll_cover`) **and** you want the
+template's curated prompt. Reach for `--fields <schema.json>` (see
+[`assets/schema_invoice.json`](assets/schema_invoice.json)) only when you need a specific
+column shape `--auto` won't produce.
 
 **Paths:** folders are addressed by name (e.g. `/invoices`). **Sheets can be addressed by either
 their name *or* the `uniqueKey` path that `create` returns** — `/invoices/march` and
@@ -62,10 +67,13 @@ fall back to the `uniqueKey`). Memos are still keyed by `uniqueKey`.
 These four rules are the point of the skill — they keep the agent lean, trustworthy, and
 cheap. Follow them by default.
 
-1. **Store, don't dump.** After extracting from more than one document, write the results into
-   a space ocr **sheet** (`create sheet` once to define columns, then `upload` the images) —
-   don't paste raw OCR JSON back into the conversation. The heavy data lives behind the API,
-   not in the context window. For a true one-off single document, a direct `ocr` is fine.
+1. **Store, don't dump — default to the upload flow.** Prefer the sheet+upload path even for
+   a single document: `create sheet` once to define columns, then `upload` the image(s). To pick
+   the columns, lean on the engine instead of inventing them — sample one document with
+   `ocr <image> --auto` and reuse the field names it returns, or pass `--template <id>` when the
+   document is obviously a built-in type. The heavy data lives behind the API, not in the
+   conversation, so every extraction stays citeable via `view`/`query`. Reserve a direct
+   `ocr <image>` call for genuinely transient one-off lookups you don't need to keep.
 
 2. **Check before you scan.** Run `balance` before a batch and confirm there's enough quota for
    the number of files; if not, tell the user instead of burning scans halfway. Before

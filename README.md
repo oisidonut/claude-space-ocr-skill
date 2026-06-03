@@ -96,24 +96,28 @@ Just ask in natural language. The skill exposes a small command surface:
 
 | You ask | What happens behind the scenes |
 |---|---|
-| *"Extract the vendor and total from this invoice."* | `ocr <image> --template invoice` |
-| *"Process this folder of 30 receipts into a sheet."* | `create sheet` → `upload` (server-side OCR, async) |
+| *"Extract the vendor and total from this invoice."* | `ocr <image> --auto` (engine picks the fields; `--template invoice` is fine when you want the curated invoice prompt) |
+| *"Process this folder of 30 receipts into a sheet."* | `create sheet` → `upload` (server-side OCR, async) — preferred even for a single doc |
 | *"Which vendor billed the most last month?"* | `query <sheet> --where 'invoice_date>=2026-05-01' --sort total:desc` over the **stored rows** — no re-scanning |
 | *"Show me where on the page that number came from."* | `view <sheet>` returns each value's bounding box (0–1000 normalized coords) |
 | *"Fix row 4, column 'total' — it should be 12800."* | `edit <sheet> --row 4 --column total --value 12800` |
 
-Built-in document templates: `invoice`, `receipt`, `business_card`, `purchase_order`, `delivery`,
-`quote`, `bankbook`, `passport`, `driver_license`, `resident_card`, `my_number_card`,
-`residence_card`, `india_electoral_roll_cover`. For anything else, supply a custom field schema
-(see [`schema_invoice.json`](skills/space-ocr/assets/schema_invoice.json) for the shape) or let
-the engine infer fields with `--auto`.
+**Picking fields — `--auto` first.** The engine runs the same field-suggestion pass that
+backs `/ocr/suggest_fields` (rejects non-document images instead of inventing fields), so
+`--auto` is the default for anything that isn't an obvious template match. Use a built-in
+`--template` id (`invoice`, `receipt`, `business_card`, `purchase_order`, `delivery`, `quote`,
+`bankbook`, `passport`, `driver_license`, `resident_card`, `my_number_card`, `residence_card`,
+`india_electoral_roll_cover`) when you want the template's curated prompt; reach for a custom
+`--fields` schema (see [`schema_invoice.json`](skills/space-ocr/assets/schema_invoice.json) for
+the shape) only when you need a specific column shape `--auto` won't produce.
 
 ## Why a skill (and not just an API wrapper)?
 
 The skill teaches the agent **how to behave** with the API, not just how to call it:
 
-1. **Store, don't dump** — after extracting from more than one document, results go into a sheet,
-   not back into the conversation. The heavy data lives behind the API.
+1. **Store, don't dump — default to upload.** Results go into a sheet (`create sheet` → `upload`)
+   even for a single doc, so every extraction stays citeable via `view`/`query`. Direct `ocr` is
+   reserved for transient one-off lookups.
 2. **Check before you scan** — `balance` before a batch; reuse existing rows instead of re-OCRing.
 3. **Answer from stored rows** — for questions about already-processed documents, `query` the
    sheet with server-side filters (free reads) instead of pulling everything into context.

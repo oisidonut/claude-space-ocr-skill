@@ -336,9 +336,12 @@ def build_parser():
 
     o = sub.add_parser("ocr", help="extract fields from one image")
     o.add_argument("image", help="URL, local file path, data: URI, or base64 string")
-    o.add_argument("--template", choices=TEMPLATES, help="built-in template id")
-    o.add_argument("--fields", help="path to a JSON field/column schema")
-    o.add_argument("--auto", action="store_true", help="let the engine infer the fields")
+    o.add_argument("--auto", action="store_true",
+                   help="preferred: let the engine pick the fields (same gating as /ocr/suggest_fields)")
+    o.add_argument("--template", choices=TEMPLATES,
+                   help="built-in template id — use when the doc clearly matches one of these")
+    o.add_argument("--fields",
+                   help="path to a JSON field/column schema — use only when --auto won't produce the shape you need")
     o.add_argument("--prompt", help="natural-language hint for the extractor")
     o.add_argument("--lang", help="comma-separated BCP-47 hints, e.g. ja,en")
     o.add_argument("--idempotency-key", dest="idempotency_key")
