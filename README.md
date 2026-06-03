@@ -55,19 +55,6 @@ For a project-scoped install (committed alongside the codebase), copy
 Python 3.8+ on the host — the client runs locally, not inside the plugin sandbox, and uses
 only the standard library. Override the endpoint with `SPACE_OCR_API_BASE` if you self-host.
 
-## Picking fields — `--auto` first
-
-The engine looks at the page and proposes 4–8 fields with the same gating as
-`/ocr/suggest_fields` (it refuses non-document images instead of inventing fields), so
-`--auto` is the default. Use `--template <id>` (`invoice`, `receipt`, `business_card`,
-`purchase_order`, `delivery`, `quote`, `bankbook`, `passport`, `driver_license`,
-`resident_card`, `my_number_card`, `residence_card`, `india_electoral_roll_cover`) when
-the document is clearly one of those. Reach for a custom `--fields` schema only when you
-need a shape `--auto` won't produce — example shapes:
-[`schema_invoice.json`](skills/space-ocr/assets/schema_invoice.json),
-[`schema_receipt.json`](skills/space-ocr/assets/schema_receipt.json),
-[`schema_business_card.json`](skills/space-ocr/assets/schema_business_card.json).
-
 ## Behaviour rules
 
 [`SKILL.md`](skills/space-ocr/SKILL.md) encodes four rules the agent follows on demand:
