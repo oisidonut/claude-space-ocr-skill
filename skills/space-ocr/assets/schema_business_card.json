@@ -1,0 +1,16 @@
+{
+  "prompt": "This is a business card (名刺). Extract the fields below.\n\nIMPORTANT — extract every value EXACTLY as printed on the card (verbatim). Do NOT normalize, reformat, translate, or otherwise rewrite anything:\n- Phone, fax, and mobile numbers: keep the original digits, spaces, hyphens, parentheses, and country-code prefix exactly as shown. Do not convert to E.164 or any other canonical form.\n- Email addresses: copy character-for-character; do not lowercase or strip surrounding text.\n- Postal addresses: keep the original line breaks, Japanese / Chinese characters, and postal-code formatting (e.g. 〒100-0001) verbatim.\n- Company names, department names, and titles: copy as printed; do not translate Japanese 株式会社 / Chinese 有限公司 / Korean 주식회사 markers, do not expand abbreviations.\n- Return an empty string for any field not present on this side of the card.\n\nVerbatim values let the engine anchor each value to its exact spot on the card; reformatted values cannot be located precisely.",
+  "columns": [
+    { "name": "name", "type": "string", "description": "Person's full name as printed (largest typeface, often centered)" },
+    { "name": "name_phonetic", "type": "string", "description": "Phonetic reading if printed alongside the name (e.g. ふりがな / pinyin / Roman alphabet variant); empty if absent" },
+    { "name": "title", "type": "string", "description": "Job title / position as printed (e.g. 代表取締役 / CEO / 部長)" },
+    { "name": "company", "type": "string", "description": "Company / organization name as printed, including any 株式会社 / Inc. / Co., Ltd. marker" },
+    { "name": "department", "type": "string", "description": "Department / division as printed; empty if no department line" },
+    { "name": "phone", "type": "string", "description": "Primary phone number as printed; empty if absent" },
+    { "name": "mobile", "type": "string", "description": "Mobile phone number as printed; empty if absent" },
+    { "name": "fax", "type": "string", "description": "Fax number as printed; empty if absent" },
+    { "name": "email", "type": "string", "description": "Email address as printed (character-for-character); empty if absent" },
+    { "name": "website", "type": "string", "description": "Website / URL as printed; empty if absent" },
+    { "name": "address", "type": "string", "description": "Full postal address as printed, joined with newline-separated lines exactly as the card lays them out" }
+  ]
+}

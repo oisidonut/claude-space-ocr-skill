@@ -1,0 +1,26 @@
+{
+  "prompt": "This is a retail receipt (storefront, restaurant, or supermarket). Extract the fields below.\n\nIMPORTANT — extract every value EXACTLY as printed on the page (verbatim). Do NOT normalize, reformat, translate, round, or compute anything:\n- Keep dates and times in their original on-page form (do not convert to ISO 8601, do not change the locale's separator).\n- Keep prices with their original currency symbols, digits, and separators as shown (e.g. ¥1,200 — never strip the symbol, never sum line items into a subtotal that isn't printed).\n- Keep phone numbers, addresses, and store identifiers exactly as printed; do not standardize hyphens/spacing.\n- Only return a value that is literally printed on the receipt; never derive subtotal/tax/total from the line items if it is not actually shown.\n- Return an empty string for anything not present.\n\nVerbatim values let the engine anchor each value to its exact spot on the page; reformatted values cannot be located precisely.",
+  "columns": [
+    { "name": "store_name", "type": "string", "description": "Store / merchant name as printed at the top of the receipt" },
+    { "name": "store_address", "type": "string", "description": "Store address line, verbatim; empty if absent" },
+    { "name": "store_phone", "type": "string", "description": "Store phone number, verbatim with the original formatting; empty if absent" },
+    { "name": "transaction_date", "type": "string", "description": "Transaction date exactly as printed; empty if absent" },
+    { "name": "transaction_time", "type": "string", "description": "Transaction time exactly as printed; empty if absent" },
+    { "name": "receipt_no", "type": "string", "description": "Receipt / transaction number exactly as printed; empty if absent" },
+    {
+      "name": "items",
+      "type": "array",
+      "description": "Line items, one element per printed row",
+      "children": [
+        { "name": "description", "type": "string", "description": "Item name / description, verbatim" },
+        { "name": "quantity", "type": "string", "description": "Quantity as printed; empty if no explicit quantity column" },
+        { "name": "unit_price", "type": "string", "description": "Unit price as printed; empty if not shown per row" },
+        { "name": "amount", "type": "string", "description": "Line amount as printed (price × quantity); the value the receipt actually shows for this row" }
+      ]
+    },
+    { "name": "subtotal", "type": "string", "description": "Subtotal exactly as printed; empty if not shown as a single line" },
+    { "name": "tax", "type": "string", "description": "Tax amount exactly as printed (e.g. 消費税 / VAT / Sales Tax); empty if not shown as a single value" },
+    { "name": "total", "type": "string", "description": "Grand total exactly as printed (合計 / Total / 総額)" },
+    { "name": "payment_method", "type": "string", "description": "Payment method as printed (cash / credit card / brand name); empty if absent" }
+  ]
+}
