@@ -96,11 +96,15 @@ Just ask in natural language. The skill exposes a small command surface:
 
 | You ask | What happens behind the scenes |
 |---|---|
-| *"Extract the vendor and total from this invoice."* | `ocr <image> --auto` (engine picks the fields; `--template invoice` is fine when you want the curated invoice prompt) |
-| *"Process this folder of 30 receipts into a sheet."* | `create sheet` → `upload` (server-side OCR, async) — preferred even for a single doc |
-| *"Which vendor billed the most last month?"* | `query <sheet> --where 'invoice_date>=2026-05-01' --sort total:desc` over the **stored rows** — no re-scanning |
-| *"Show me where on the page that number came from."* | `view <sheet>` returns each value's bounding box (0–1000 normalized coords) |
+| *"Extract the vendor and total from this invoice."* | `ocr <image> --auto` |
+| *"Process this folder of 30 receipts into a sheet."* | `create sheet` → `upload` (server-side OCR, async) |
+| *"Which vendor billed the most last month?"* | `query <sheet> --where 'invoice_date>=2026-05-01' --sort total:desc` over the stored rows — no re-scanning |
+| *"Show me where on the page that number came from."* | `view <sheet>` returns each value's bounding box (0–1000 normalized coords); deep-link the page with `https://space-ocr.com/pages/myspace/<path>` |
 | *"Fix row 4, column 'total' — it should be 12800."* | `edit <sheet> --row 4 --column total --value 12800` |
+
+The skill prefers the sheet+upload flow even for a single document — every extraction stays
+citeable via `view`/`query` instead of being thrown back into the conversation. Direct `ocr`
+is reserved for transient one-off lookups.
 
 **Picking fields — `--auto` first.** The engine runs the same field-suggestion pass that
 backs `/ocr/suggest_fields` (rejects non-document images instead of inventing fields), so

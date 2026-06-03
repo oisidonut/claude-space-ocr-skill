@@ -67,13 +67,12 @@ fall back to the `uniqueKey`). Memos are still keyed by `uniqueKey`.
 These four rules are the point of the skill — they keep the agent lean, trustworthy, and
 cheap. Follow them by default.
 
-1. **Store, don't dump — default to the upload flow.** Prefer the sheet+upload path even for
-   a single document: `create sheet` once to define columns, then `upload` the image(s). To pick
-   the columns, lean on the engine instead of inventing them — sample one document with
-   `ocr <image> --auto` and reuse the field names it returns, or pass `--template <id>` when the
-   document is obviously a built-in type. The heavy data lives behind the API, not in the
-   conversation, so every extraction stays citeable via `view`/`query`. Reserve a direct
-   `ocr <image>` call for genuinely transient one-off lookups you don't need to keep.
+1. **Store, don't dump — default to upload.** For anything you might want to look at again,
+   go `create sheet` → `upload`, not direct `ocr`. Pick the columns by sampling one document
+   with `ocr <image> --auto` and reusing the result's top-level keys (an array-valued key
+   becomes `{"type":"array","children":[<keys of the first row>]}`, everything else
+   `"string"`); when the document is obviously a built-in type, `--template <id>` is the
+   shortcut. Reserve a direct `ocr` call for transient one-off lookups you don't need to keep.
 
 2. **Check before you scan.** Run `balance` before a batch and confirm there's enough quota for
    the number of files; if not, tell the user instead of burning scans halfway. Before
@@ -90,10 +89,13 @@ cheap. Follow them by default.
 4. **Cite the location; flag what's uncertain.** Every value carries a `field_bboxes` location
    (and raw OCR carries a `confidence`). When you present an extracted value, mention where on
    the page it came from, and surface anything low-confidence or blank rather than asserting
-   it's correct. Point the user to the space ocr web dashboard to see the boxes drawn on the
-   document and verify by eye. **Prefer verbatim extraction:** when you write a custom schema,
-   tell the model to copy each value exactly as printed (don't normalize dates/numbers or compute
-   totals) — reformatted or derived values can't be anchored to the page, so their boxes drift.
+   it's correct. Deep-link the user to the dashboard view with boxes drawn:
+   `https://space-ocr.com/pages/myspace/<path>` (URL-encode each segment of the workspace
+   path). **Prefer verbatim extraction:** when you write a custom schema, tell the model to
+   copy each value exactly as printed (don't normalize dates/numbers or compute totals) —
+   reformatted or derived values can't be anchored to the page, so their boxes drift. The
+   simplest way to lock this in for a sheet is `create sheet --prompt "...verbatim..."` so
+   every later `upload` to the sheet runs against the same instruction.
 
 ## Going deeper
 

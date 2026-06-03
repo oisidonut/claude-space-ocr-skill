@@ -54,6 +54,14 @@ Request:
 Supply **exactly one** of `fields`, `template_id`, or `auto_fields`. Supports an
 `Idempotency-Key` header (a retry with the same key replays the cached result, no double charge).
 
+**`auto_fields=true` runs in two passes server-side:** first the engine looks at the image
+with the same prompt that backs internal field-suggestion (with rejection gates for "no
+extractable text" and "not a structured document") and proposes 4–8 fields; then the standard
+structured-OCR pipeline runs against that derived schema. If the image fails the gate (a
+landscape photo, an empty page, an unstructured snapshot), the call returns
+`ocr_engine_error` instead of inventing fields, and the scan is refunded — same charging
+behaviour as any other failed `/ocr/fields` call.
+
 Response — the engine result, passed through verbatim under `data`:
 ```json
 {
