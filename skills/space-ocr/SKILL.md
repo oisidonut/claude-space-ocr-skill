@@ -16,7 +16,7 @@ There is nothing to install — only `python3`.
 
 ## Setup
 
-1. Get an API key at https://space-ocr.com → Settings → API Keys (100 free scans, no card).
+1. Get an API key at https://space-ocr.com → Developer → API Keys in the top menu (100 free scans, no card).
 2. Put it where the script can read it — either:
    - `export SPACE_OCR_API_KEY=spocr_...`, or
    - a `.env` file in the project root (see [`.env.example`](.env.example)).

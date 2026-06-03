@@ -60,7 +60,7 @@ def _config():
     key = os.environ.get("SPACE_OCR_API_KEY", "").strip()
     if not key:
         _die("SPACE_OCR_API_KEY is not set. Export it or add it to a .env file "
-             "(see .env.example). Get one at https://space-ocr.com -> Settings -> API Keys.")
+             "(see .env.example). Get one at https://space-ocr.com -> Developer -> API Keys (top menu).")
     base = os.environ.get("SPACE_OCR_API_BASE", DEFAULT_BASE).rstrip("/")
     return key, base
 

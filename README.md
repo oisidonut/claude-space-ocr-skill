@@ -57,7 +57,7 @@ The command is `python3` on macOS/Linux and `py` on Windows (install from
 
 ## Setup (one-time)
 
-1. Get an API key at https://space-ocr.com → Settings → API Keys.
+1. Get an API key at https://space-ocr.com → Developer → API Keys (top menu).
 2. Make it visible to the script — either drop it in a `.env` file in your project root
    (see [`.env.example`](skills/space-ocr/.env.example)), or export it in your shell:
 
