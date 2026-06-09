@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.1
+
+- `view` and `query` accept `--out FILE` — writes the JSON response straight to
+  a utf-8 file so agents can `Read` it instead of writing a throwaway analyzer
+  script and piping through `python -c` (which crashes on Korean/Japanese
+  Windows under cp949).
+- Workspace-path arguments now warn when the value looks like a Git Bash (MSYS)
+  auto-converted path (e.g. `/Invoices` rewritten to
+  `C:/Program Files/Git/Invoices`). The request still goes through, but the
+  hint short-circuits the generic `validation_failed` debugging loop.
+- `query` / `view` URL-encoding: literal `/` in query params is preserved
+  (the API rejects percent-encoded slashes), and the script forces utf-8 on
+  stdout/stderr so non-ASCII vendor names don't break on Windows consoles.
+- SKILL.md gains a "Calling the script" section naming the three gotchas up
+  front: paths carry no file extension, Windows users want PowerShell over
+  Git Bash, and `--out FILE` replaces the helper-script anti-pattern.
+
 ## 0.2.0
 
 - `--auto` is now the default field-picking path. The skill teaches the agent to
