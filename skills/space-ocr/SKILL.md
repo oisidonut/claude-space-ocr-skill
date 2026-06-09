@@ -62,6 +62,14 @@ permanent; prefer it when a name could be ambiguous (legacy data with duplicate 
 the same parent returns `400 validation_failed: ambiguous sheet name` on a name-path lookup —
 fall back to the `uniqueKey`). Memos are still keyed by `uniqueKey`.
 
+## Calling the script
+
+Three easy-to-trip-over notes when driving this from a shell:
+
+- **No file extension on paths.** Use `/Invoices/Invoices`, not `/Invoices/Invoices.sheet`. Folders, sheets, memos, and images are all addressed the same way.
+- **Windows: PowerShell or cmd, not Git Bash.** MSYS rewrites any argument starting with `/` into a Windows path before Python sees it (`/Invoices` → `C:/Program Files/Git/Invoices`), which the server rejects as `validation_failed`. The script warns when it spots this; the fix is the shell, not the arg.
+- **Don't write a `_analyze.py` helper to parse the JSON.** `view` and `query` both take `--out FILE` (utf-8). Land the response in a file, read it back, reason over it inline — no second `python -c` invocation, and you sidestep Windows console code pages (cp949/cp1252) entirely.
+
 ## How to behave
 
 These four rules are the point of the skill — they keep the agent lean, trustworthy, and

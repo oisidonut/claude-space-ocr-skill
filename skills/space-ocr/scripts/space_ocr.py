@@ -15,6 +15,7 @@ import base64
 import json
 import mimetypes
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -141,8 +142,38 @@ def _die(msg):
     sys.exit(1)
 
 
+_OUT_PATH = None  # set from `--out FILE` in main(); _emit writes there instead of stdout
+
+
 def _emit(obj):
-    sys.stdout.write(json.dumps(obj, ensure_ascii=False, indent=2) + "\n")
+    text = json.dumps(obj, ensure_ascii=False, indent=2) + "\n"
+    if _OUT_PATH:
+        # Explicit utf-8 sidesteps Windows console code pages (cp949/cp1252) entirely,
+        # so callers can `Read` the file directly instead of piping through another script.
+        with open(_OUT_PATH, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        sys.stdout.write(json.dumps(
+            {"saved": _OUT_PATH, "bytes": len(text.encode("utf-8"))}) + "\n")
+    else:
+        sys.stdout.write(text)
+
+
+_MSYS_PATH_RE = re.compile(r"^[A-Za-z]:[/\\]")
+
+
+def _workspace_path(s):
+    """argparse type for paths that address the space-ocr workspace tree.
+    On Git Bash for Windows (MSYS), args starting with '/' get rewritten to a
+    Windows path before Python sees them (e.g. /Invoices -> C:/Program Files/Git/Invoices),
+    which then loses to a generic server validation_failed. Turn that into a clear
+    hint while still sending the request — the server's 400 stays the final word."""
+    if _MSYS_PATH_RE.match(s):
+        sys.stderr.write(
+            "warning: '%s' looks like a Git Bash (MSYS) auto-converted path. "
+            "Workspace paths start with '/' (e.g. /Invoices/Invoices, no extension). "
+            "Use PowerShell or cmd on Windows, or prefix the arg with '//' to bypass MSYS.\n"
+            % s)
+    return s
 
 
 def _resolve_image(value):
@@ -350,7 +381,8 @@ def build_parser():
     o.set_defaults(func=cmd_ocr)
 
     s = sub.add_parser("space", help="list the workspace tree")
-    s.add_argument("path", nargs="?", default="/", help="folder path (default /)")
+    s.add_argument("path", nargs="?", default="/", type=_workspace_path,
+                   help="folder path (default /)")
     s.add_argument("--depth", type=int, default=1, help="1..10")
     s.set_defaults(func=cmd_space)
 
@@ -366,19 +398,25 @@ def build_parser():
         sp.add_argument("--offset", type=int, help="rows to skip (pagination)")
 
     v = sub.add_parser("view", help="read a folder's items or a sheet's rows (with boxes)")
-    v.add_argument("path")
+    v.add_argument("path", type=_workspace_path)
     add_row_filters(v)
     v.add_argument("--no-boxes", action="store_true", help="drop bounding boxes for a lean payload")
+    v.add_argument("--out", metavar="FILE",
+                   help="write the JSON response to FILE (utf-8) instead of stdout — "
+                        "lets agents skip writing a helper script just to parse stdout")
     v.set_defaults(func=cmd_view)
 
     q = sub.add_parser("query", help="pull a sheet's rows lean (boxes stripped) for reasoning")
-    q.add_argument("path", help="sheet path")
+    q.add_argument("path", type=_workspace_path, help="sheet path")
     add_row_filters(q)
+    q.add_argument("--out", metavar="FILE",
+                   help="write the JSON response to FILE (utf-8) instead of stdout — "
+                        "lets agents skip writing a helper script just to parse stdout")
     q.set_defaults(func=cmd_query)
 
     c = sub.add_parser("create", help="create a folder, sheet, or memo")
     c.add_argument("type", choices=["folder", "sheet", "memo"])
-    c.add_argument("path", help="parent folder path, e.g. /invoices")
+    c.add_argument("path", type=_workspace_path, help="parent folder path, e.g. /invoices")
     c.add_argument("name")
     c.add_argument("--columns", help="(sheet) path to a JSON column schema")
     c.add_argument("--text", help="(memo) body text")
@@ -388,7 +426,7 @@ def build_parser():
     c.set_defaults(func=cmd_create)
 
     u = sub.add_parser("upload", help="upload images into a sheet (OCR runs server-side)")
-    u.add_argument("path", help="destination SHEET path")
+    u.add_argument("path", type=_workspace_path, help="destination SHEET path")
     u.add_argument("files", nargs="+", help="one or more image files (max 20)")
     u.add_argument("--wait", action="store_true", help="block until OCR finishes (else async)")
     u.add_argument("--idempotency-key", dest="idempotency_key")
@@ -399,7 +437,7 @@ def build_parser():
     j.set_defaults(func=cmd_job)
 
     e = sub.add_parser("edit", help="correct a sheet cell, or rewrite a memo")
-    e.add_argument("path")
+    e.add_argument("path", type=_workspace_path)
     e.add_argument("--row", help="row index (0-based) or row key")
     e.add_argument("--column", help="column index or name")
     e.add_argument("--value", help="new cell value")
@@ -407,7 +445,7 @@ def build_parser():
     e.set_defaults(func=cmd_edit)
 
     r = sub.add_parser("remove", help="delete a folder/sheet/memo/image (cascades)")
-    r.add_argument("path")
+    r.add_argument("path", type=_workspace_path)
     r.set_defaults(func=cmd_remove)
 
     return p
@@ -423,6 +461,8 @@ def main(argv=None):
         except (AttributeError, ValueError):
             pass
     args = build_parser().parse_args(argv)
+    global _OUT_PATH
+    _OUT_PATH = getattr(args, "out", None)
     args.func(args)
 
 
