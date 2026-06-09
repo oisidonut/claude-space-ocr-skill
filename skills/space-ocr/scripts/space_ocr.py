@@ -74,8 +74,10 @@ def _request(method, path, *, json_body=None, query=None, multipart=None,
     if query:
         clean = {k: v for k, v in query.items() if v is not None}
         if clean:
-            # doseq=True so list values (e.g. multiple --where) become repeated params
-            url += "?" + urllib.parse.urlencode(clean, doseq=True)
+            # doseq=True so list values (e.g. multiple --where) become repeated params.
+            # safe="/" keeps path values like "/Invoices/Invoices" literal — the API
+            # rejects percent-encoded slashes with validation_failed.
+            url += "?" + urllib.parse.urlencode(clean, doseq=True, safe="/")
 
     headers = {"Authorization": "Bearer " + key, "Accept": "application/json"}
     if idempotency_key:
@@ -412,6 +414,14 @@ def build_parser():
 
 
 def main(argv=None):
+    # On Windows the default console encoding is cp1252 and a JSON response
+    # carrying non-ASCII (kanji, emoji, accented vendor names…) blows up with
+    # UnicodeEncodeError. Force UTF-8 so callers don't need PYTHONIOENCODING.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     args = build_parser().parse_args(argv)
     args.func(args)
 
