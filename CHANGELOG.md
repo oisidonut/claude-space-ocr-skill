@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2
+
+- Added a top-level `description` to the marketplace manifest
+  (`.claude-plugin/marketplace.json`) so the plugin surfaces with searchable
+  keywords (OCR, invoice, receipt, business card, ID, form, bounding box,
+  structured fields) in the Discover catalog. Clears the `claude plugin
+  validate` warning.
+
 ## 0.2.1
 
 - `view` and `query` accept `--out FILE` — writes the JSON response straight to

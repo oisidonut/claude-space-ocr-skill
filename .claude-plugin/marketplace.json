@@ -4,6 +4,7 @@
     "name": "Green Bear",
     "email": "oisidonut@gmail.com"
   },
+  "description": "Structured OCR for documents — invoices, receipts, business cards, IDs, forms — extracted into verifiable fields with bounding boxes, plus queryable sheet storage. No database, no MCP server required.",
   "plugins": [
     {
       "name": "space-ocr",
