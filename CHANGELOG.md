@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3
+
+- `/ocr/fields` language hints now use the API's canonical camelCase key:
+  the client sends `languageHints` instead of `language_hints`, matching
+  `/create`. The API still accepts `language_hints` as a deprecated alias,
+  so older skill versions keep working. `references/api.md` updated to match.
+
 ## 0.2.2
 
 - Added a top-level `description` to the marketplace manifest

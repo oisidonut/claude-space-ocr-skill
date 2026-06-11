@@ -48,7 +48,7 @@ Request:
   "template_id": "invoice",            // OR a built-in template instead of fields
   "auto_fields": true,                 // OR let the engine infer the schema
   "prompt": "optional natural-language hint",
-  "language_hints": ["ja", "en"]       // BCP-47; English is always auto-included
+  "languageHints": ["ja", "en"]        // BCP-47; English is always auto-included (legacy alias: language_hints)
 }
 ```
 Supply **exactly one** of `fields`, `template_id`, or `auto_fields`. Supports an

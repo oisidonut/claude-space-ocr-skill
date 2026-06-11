@@ -242,7 +242,7 @@ def cmd_ocr(args):
     if args.prompt:
         body["prompt"] = args.prompt
     if args.lang:
-        body["language_hints"] = [s.strip() for s in args.lang.split(",") if s.strip()]
+        body["languageHints"] = [s.strip() for s in args.lang.split(",") if s.strip()]
     if not (body.get("fields") or body.get("template_id") or body.get("auto_fields")):
         _die("provide one of --template, --fields, or --auto")
     _emit(_request("POST", "/ocr/fields", json_body=body,
