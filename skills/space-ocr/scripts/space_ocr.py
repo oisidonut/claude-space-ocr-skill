@@ -179,16 +179,16 @@ def _workspace_path(s):
 def _resolve_image(value):
     """Accept a URL, a local file path, a data: URI, or a raw base64 string."""
     if value.startswith(("http://", "https://")):
-        return {"image": value, "image_type": "url"}
+        return {"image": value, "imageType": "url"}
     if value.startswith("data:"):
         comma = value.find(",")
-        return {"image": value[comma + 1:] if comma >= 0 else value, "image_type": "base64"}
+        return {"image": value[comma + 1:] if comma >= 0 else value, "imageType": "base64"}
     path = os.path.expanduser(value)
     if os.path.exists(path):
         with open(path, "rb") as fh:
-            return {"image": base64.b64encode(fh.read()).decode("ascii"), "image_type": "base64"}
+            return {"image": base64.b64encode(fh.read()).decode("ascii"), "imageType": "base64"}
     # Not a path on disk -> assume it is already a base64 string.
-    return {"image": value, "image_type": "base64"}
+    return {"image": value, "imageType": "base64"}
 
 
 def _load_json_file(path):
@@ -227,7 +227,7 @@ def cmd_ocr(args):
     img = _resolve_image(args.image)
     body = dict(img)
     if args.template:
-        body["template_id"] = args.template
+        body["templateId"] = args.template
     if args.fields:
         spec = _load_json_file(args.fields)
         # Accept either a bare list of fields, or {"fields"/"columns": [...], "prompt": ...}
@@ -238,12 +238,12 @@ def cmd_ocr(args):
         else:
             body["fields"] = spec
     if args.auto:
-        body["auto_fields"] = True
+        body["autoFields"] = True
     if args.prompt:
         body["prompt"] = args.prompt
     if args.lang:
         body["languageHints"] = [s.strip() for s in args.lang.split(",") if s.strip()]
-    if not (body.get("fields") or body.get("template_id") or body.get("auto_fields")):
+    if not (body.get("fields") or body.get("templateId") or body.get("autoFields")):
         _die("provide one of --template, --fields, or --auto")
     _emit(_request("POST", "/ocr/fields", json_body=body,
                    idempotency_key=args.idempotency_key))

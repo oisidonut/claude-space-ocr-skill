@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4
+
+- `/ocr/fields` request keys are now fully camelCase, matching the API's
+  canonical naming: the client sends `imageType`, `templateId`, and
+  `autoFields` instead of `image_type`, `template_id`, and `auto_fields`.
+  The API still accepts the snake_case names as deprecated aliases, so older
+  skill versions keep working. `references/api.md` updated to match.
+
 ## 0.2.3
 
 - `/ocr/fields` language hints now use the API's canonical camelCase key:

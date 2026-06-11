@@ -43,18 +43,18 @@ Request:
 ```json
 {
   "image": "<url | base64>",
-  "image_type": "url",                 // "url" or "base64"
+  "imageType": "url",                  // "url" or "base64" (legacy alias: image_type)
   "fields": [ { "name": "...", "type": "string|array", "description": "...", "children": [...] } ],
-  "template_id": "invoice",            // OR a built-in template instead of fields
-  "auto_fields": true,                 // OR let the engine infer the schema
+  "templateId": "invoice",             // OR a built-in template instead of fields (legacy alias: template_id)
+  "autoFields": true,                  // OR let the engine infer the schema (legacy alias: auto_fields)
   "prompt": "optional natural-language hint",
   "languageHints": ["ja", "en"]        // BCP-47; English is always auto-included (legacy alias: language_hints)
 }
 ```
-Supply **exactly one** of `fields`, `template_id`, or `auto_fields`. Supports an
+Supply **exactly one** of `fields`, `templateId`, or `autoFields`. Supports an
 `Idempotency-Key` header (a retry with the same key replays the cached result, no double charge).
 
-**`auto_fields=true` runs in two passes server-side:** first the engine looks at the image
+**`autoFields=true` runs in two passes server-side:** first the engine looks at the image
 with the same prompt that backs internal field-suggestion (with rejection gates for "no
 extractable text" and "not a structured document") and proposes 4–8 fields; then the standard
 structured-OCR pipeline runs against that derived schema. If the image fails the gate (a
@@ -201,7 +201,7 @@ pixel_y = bbox_y / 1000 * image_height
   `vision_symbol_match` (character-level fallback). Boxes are re-anchored to real Vision-API
   symbols — **not** LLM-invented — which is why they can be trusted for verification UIs.
 
-## Built-in templates (`template_id`)
+## Built-in templates (`templateId`)
 
 `invoice`, `receipt`, `business_card`, `purchase_order`, `delivery`, `quote`, `bankbook`,
 `passport`, `driver_license`, `resident_card`, `my_number_card`, `residence_card`,
