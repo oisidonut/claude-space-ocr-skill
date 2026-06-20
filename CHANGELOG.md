@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- Removed the `--lang` flag from the `ocr` and `create` commands. The space ocr
+  engine auto-detects the document's language(s); forcing language hints could
+  bias Google Vision's recognition and misalign the word-level bounding boxes
+  (`vertices`). The client no longer sends `languageHints`, and the
+  `languageHints` parameter was dropped from the API, so passing it has no
+  effect. `references/api.md` updated to drop the parameter.
+
 ## 0.2.4
 
 - `/ocr/fields` request keys are now fully camelCase, matching the API's

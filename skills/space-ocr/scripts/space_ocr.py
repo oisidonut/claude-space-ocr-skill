@@ -241,8 +241,6 @@ def cmd_ocr(args):
         body["autoFields"] = True
     if args.prompt:
         body["prompt"] = args.prompt
-    if args.lang:
-        body["languageHints"] = [s.strip() for s in args.lang.split(",") if s.strip()]
     if not (body.get("fields") or body.get("templateId") or body.get("autoFields")):
         _die("provide one of --template, --fields, or --auto")
     _emit(_request("POST", "/ocr/fields", json_body=body,
@@ -311,8 +309,6 @@ def cmd_create(args):
             body["columns"] = spec
     if args.prompt:
         body["prompt"] = args.prompt
-    if args.lang:
-        body["languageHints"] = [s.strip() for s in args.lang.split(",") if s.strip()]
     _emit(_request("POST", "/create", json_body=body,
                    idempotency_key=args.idempotency_key))
 
@@ -376,7 +372,6 @@ def build_parser():
     o.add_argument("--fields",
                    help="path to a JSON field/column schema — use only when --auto won't produce the shape you need")
     o.add_argument("--prompt", help="natural-language hint for the extractor")
-    o.add_argument("--lang", help="comma-separated BCP-47 hints, e.g. ja,en")
     o.add_argument("--idempotency-key", dest="idempotency_key")
     o.set_defaults(func=cmd_ocr)
 
@@ -421,7 +416,6 @@ def build_parser():
     c.add_argument("--columns", help="(sheet) path to a JSON column schema")
     c.add_argument("--text", help="(memo) body text")
     c.add_argument("--prompt", help="(sheet) extraction prompt applied to uploads")
-    c.add_argument("--lang", help="comma-separated BCP-47 hints, e.g. ja,en")
     c.add_argument("--idempotency-key", dest="idempotency_key")
     c.set_defaults(func=cmd_create)
 

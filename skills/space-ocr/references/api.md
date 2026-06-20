@@ -47,12 +47,15 @@ Request:
   "fields": [ { "name": "...", "type": "string|array", "description": "...", "children": [...] } ],
   "templateId": "invoice",             // OR a built-in template instead of fields (legacy alias: template_id)
   "autoFields": true,                  // OR let the engine infer the schema (legacy alias: auto_fields)
-  "prompt": "optional natural-language hint",
-  "languageHints": ["ja", "en"]        // BCP-47; English is always auto-included (legacy alias: language_hints)
+  "prompt": "optional natural-language hint"
 }
 ```
 Supply **exactly one** of `fields`, `templateId`, or `autoFields`. Supports an
 `Idempotency-Key` header (a retry with the same key replays the cached result, no double charge).
+
+Document language is detected automatically server-side — there is no language-hint
+parameter. (Forcing a wrong/narrow hint used to bias Google Vision's recognition and
+misalign the word-level bounding boxes, so the engine now always auto-detects.)
 
 **`autoFields=true` runs in two passes server-side:** first the engine looks at the image
 with the same prompt that backs internal field-suggestion (with rejection gates for "no
@@ -98,8 +101,7 @@ carries its own `field_bboxes` for the child columns. Raw text regions also incl
   "text": "...",                       // memo only
   "columns": [ {"name":"vendor","type":"string","description":"..."},
                {"name":"items","type":"array","children":[ {"name":"qty","type":"string"} ]} ],
-  "prompt": "...",                     // sheet: extraction prompt applied to every upload
-  "languageHints": ["ja","en"]
+  "prompt": "..."                      // sheet: extraction prompt applied to every upload
 }
 ```
 Returns `201 { "path": "/invoices/<uniqueKey>", "type": "sheet", "uniqueKey": "..." }`.
