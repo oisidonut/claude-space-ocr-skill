@@ -97,7 +97,11 @@ cheap. Follow them by default.
 4. **Cite the location; flag what's uncertain.** Every value carries a `field_bboxes` location
    (and raw OCR carries a `confidence`). When you present an extracted value, mention where on
    the page it came from, and surface anything low-confidence or blank rather than asserting
-   it's correct. Deep-link the user to the dashboard view with boxes drawn:
+   it's correct. Each `field_bboxes` entry may also carry **`text_verified`**: `true` means the
+   Vision OCR symbols at that spot spell out exactly the returned value (two independent engines
+   agree — near-certain), `false` means they disagree — call those cells out for a human check;
+   absent means no signal. Note `query` drops boxes (and with them `text_verified`), so use
+   `view` when you're verifying rather than just reading. Deep-link the user to the dashboard view with boxes drawn:
    `https://space-ocr.com/pages/myspace/<path>` (URL-encode each segment of the workspace
    path). **Prefer verbatim extraction:** when you write a custom schema, tell the model to
    copy each value exactly as printed (don't normalize dates/numbers or compute totals) —

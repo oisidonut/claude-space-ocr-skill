@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.1
+
+- Documented the `text_verified` flag now returned per `field_bboxes` entry
+  (3-state: `true` = the Vision-OCR symbols under the box and the LLM value
+  agree character-for-character, `false` = they disagree and the cell deserves
+  a human look, absent = no signal). `SKILL.md` behavior rule 4 now tells the
+  agent to use it — and to prefer `view` over `query` when verifying, since
+  dropping boxes also drops the flag.
+- Documented the `no_text` failure path for uploads: a result with no
+  page-anchored values is marked `status: "failed"` with
+  `error: { "code": "no_text" }` on `GET /jobs/{id}` and the scan is refunded,
+  instead of landing as an empty "done" row. Agents shouldn't blindly retry
+  those files.
+- Documented per-plan sheet limits on `POST /create` (Free 3 / Starter 15 /
+  Pro unlimited → `403 forbidden` past the limit; folders and memos uncapped).
+- Docs-only release: no client script changes; older skill versions keep
+  working unchanged.
+
 ## 0.3.0
 
 - Removed the `--lang` flag from the `ocr` and `create` commands. The space ocr

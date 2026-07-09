@@ -75,7 +75,8 @@ Response — the engine result, passed through verbatim under `data`:
     "field_bboxes": {
       "vendor": { "bbox": {"xmin":145,"ymin":134,"xmax":320,"ymax":149},
                   "vertices": [ {"x":145,"y":134}, "..." ],
-                  "match_ratio": 1.0, "bbox_source": "token_id" },
+                  "match_ratio": 1.0, "bbox_source": "token_id",
+                  "text_verified": true },
       "total":  { "bbox": {"xmin":540,"ymin":620,"xmax":593,"ymax":640} }
     }
   }
@@ -84,6 +85,12 @@ Response — the engine result, passed through verbatim under `data`:
 For an `array` field (repeating rows like line items) the value is a list, and each element
 carries its own `field_bboxes` for the child columns. Raw text regions also include a
 `confidence` (0.0–1.0).
+
+**`text_verified`** (3-state, per `field_bboxes` entry): `true` = the Vision-OCR symbols under
+the box and the LLM's value agree **character-for-character** — two independent engines concur,
+treat the value as near-certain; `false` = they disagree — worth a human look; key absent = no
+signal (results produced before the flag existed). Metadata only: it never changes the value or
+the box.
 
 ### `GET /space?path=/&depth=1` — list the tree
 `depth` is 1–10. Returns a flat array of nodes:
@@ -107,6 +114,10 @@ carries its own `field_bboxes` for the child columns. Raw text regions also incl
 Returns `201 { "path": "/invoices/<uniqueKey>", "type": "sheet", "uniqueKey": "..." }`.
 A column schema uses the **same shape** as OCR `fields` (`name` / `type` / `description` /
 `children`). Idempotency-Key supported.
+
+**Sheet count is plan-limited**: Free 3 / Starter 15 / Pro unlimited. Creating a sheet past the
+limit returns `403 forbidden: sheet limit reached for your plan (max N)` — surface that to the
+user (reuse an existing sheet or upgrade) instead of retrying. Folders and memos are not capped.
 
 > **Addressing:** sheets can be addressed by **either** their `name` **or** the `uniqueKey` that
 > `create` returns — `/invoices/march` and `/invoices/<uniqueKey>` both resolve on every endpoint
@@ -141,8 +152,15 @@ with a `processable` count and nothing is charged.
 { "jobId": "job_abc", "uniqueKey": "abc", "path": "/invoices/march", "sheetRef": "...",
   "status": "pending | processing | done | failed",
   "result": { "...": "engine result, present when done" },
+  "error": { "code": "no_text | ocr_engine_error" },
   "imageUrl": "https://...", "createdAt": 0 }
 ```
+`error` is present only when `status` is `failed`. `no_text` means the engine responded but
+**not a single value could be anchored to the page** (blank/unreadable image, or a hallucinated
+result) — the row is marked failed and the scan refunded, instead of landing as an empty "done"
+row. Don't blindly retry a `no_text` file; tell the user the image has no extractable text.
+(This gate applies to the `/upload` path; a direct `/ocr/fields` call returns the engine result
+as-is.)
 
 ### `GET /view?path=...` — read contents
 - folder → `{ "type":"folder", "path", "items":[ {path,name,type,uniqueKey} ] }`
@@ -161,7 +179,7 @@ no scan). Ignored for folders/memos/images.
 | `sort` | `total:desc` / `-invoice_date` / `invoice_date:asc`. Repeatable for tie-breaks. |
 | `select` | comma-separated columns to return (projection), e.g. `vendor,total`. |
 | `limit`, `offset` | pagination; `limit` is capped at 500. The response carries `total` (all rows), `matched` (after `where`), and `nextOffset` (null when exhausted). |
-| `boxes` | `0`/`false` drops `field_bboxes`/`vertices`/`bbox` for a lean payload. |
+| `boxes` | `0`/`false` drops `field_bboxes`/`vertices`/`bbox` for a lean payload (this also drops `text_verified`, which lives inside `field_bboxes` — keep boxes on for a verification pass). |
 
 Example: `GET /view?path=/invoices/<key>&where=total>=40000&sort=-total&limit=20&boxes=0`
 With no params, `/view` returns every row unchanged (the counters are just additive).
@@ -202,6 +220,9 @@ pixel_y = bbox_y / 1000 * image_height
 - `bbox_source`: `token_id` (LLM word-id → Vision word box, the deterministic path) or
   `vision_symbol_match` (character-level fallback). Boxes are re-anchored to real Vision-API
   symbols — **not** LLM-invented — which is why they can be trusted for verification UIs.
+- `text_verified` (when present): `true` = the matched Vision symbols spell out exactly the
+  returned value (character-level agreement between two independent engines); `false` = they
+  differ — treat the cell as needing human review even if it has a box.
 
 ## Built-in templates (`templateId`)
 
