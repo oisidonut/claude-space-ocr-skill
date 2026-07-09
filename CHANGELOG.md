@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+- README refresh: the "why this exists" section and behaviour rule 4 now cover
+  the `text_verified` per-field flag and the `no_text` refund path documented
+  in 0.3.1, so the repo front page matches `SKILL.md` / `references/api.md`.
+
 ## 0.3.1
 
 - Documented the `text_verified` flag now returned per `field_bboxes` entry

@@ -37,6 +37,11 @@ The skill works around each of those:
 - Every value carries a **bounding box re-anchored to real Vision-API symbols on the
   page**, not an LLM guess. Anything the model invents has no anchor and surfaces as
   such; `--auto` further refuses non-document images instead of inventing fields.
+  Fields may additionally carry a **`text_verified` flag** — `true` when the Vision
+  symbols under the box spell out exactly the returned value (two independent engines
+  agreeing character for character), `false` when they disagree and the cell deserves
+  a human look. An upload where nothing at all anchors to the page fails with
+  `no_text` and is refunded, rather than stored as an empty row.
 - Extractions live in **sheets behind the API**, not in the conversation. The agent
   reads back only what the current question needs via `query` / `view` with server-side
   filters, so the chat doesn't accumulate raw OCR and the agent doesn't drift as the
@@ -87,7 +92,8 @@ only the standard library. Override the endpoint with `SPACE_OCR_API_BASE` if yo
 1. **Store, don't dump** — default to `create sheet` → `upload` so extractions stay citeable.
 2. **Check before you scan** — `balance` first; reuse existing rows instead of re-OCRing.
 3. **Answer from stored rows** — `query` with server-side filters; reads don't cost a scan.
-4. **Cite the location; flag what's uncertain** — every value carries a `field_bboxes`.
+4. **Cite the location; flag what's uncertain** — every value carries a `field_bboxes`;
+   cells with `text_verified: false` get called out for a human check.
 
 ## Repo layout
 
